@@ -1,0 +1,41 @@
+Depending on the Skype for Web API application you're building, you may need to deal with new incoming messages. Once you've signed in as a Skype for Business user your presece will show as Available to everyone else, and they may decide to IM you. It's not obvious from the Skype for Business desktop client that a user has signed in over the web so people may just think that you have the full capabilities of the Skype for Business client.
+
+Of course, you can just ignore possibility entirely, in which case anyone sending an IM will receive a timeout message. However a nicer user experience, even if you don't intend on handling incoming messages is to code for it, and reject them - this will give a better experience to the person sending the message, rather than letting it just time out.
+
+When a new conversation request is received by the Skype for Web API, it is added to the list of conversations managed by the conversationsManager. By monitoring new conversations being added here you can then take actions when they appear.
+
+You can register an event listener for new conversations being added with the event listener:
+
+var client = new Skype.Web.Model.Application;
+ //perform sign in
+   client.conversationsManager.conversations.added(function (newConversation) {
+//do something with newConversation
+});
+
+Obviously there is only one conversationsManager and if you're starting your own conversations as well then conversations will be being added and removed from this fairly regularly. There are two important things you should check for to know whether this is a incoming conversation you need to act on. You should check that you are able to accept the conversation, and that the conversation is in the right state to be accepted.
+
+Checking to see whether you are able to accept the conversation is in fact checking the specific modality you are interested in, to see if it is supported. IM should always be support, but it's good practice to make sure. You do this by checking the value of:
+
+newConversation.chatService.accept.enabled()
+
+Secondly, you should evaluate the state of the conversation. A conversation moves through various states during its lifetime and checking the current state will make sure you don't try and accept or reject a conversation that isn't ready for it. If the conversation state is Notified then it means that the conversation is waiting for an invitation decision to be made: i.e. it's ready to be accepted or declined:
+
+newConversation.chatService.state() == 'Notified'
+
+Putting the two together gives you:
+
+var client = new Skype.Web.Model.Application;
+ //perform sign in
+   client.conversationsManager.conversations.added(function (newConversation) {
+    if (newConversation.chatService.accept.enabled() && newConversation.chatService.state() == 'Notified')
+      {
+       //accept or reject invite
+      }
+});
+
+Actually accepting or rejecting the conversation invitation is easy:
+newConversation.chatService.accept();
+or
+newConversation.chatService.reject();
+
+Of course, in a real-life scenario you might want to display a notification about the new conversation to the user, and let them make the decision to accept or reject. With the event listener shown above the newConversation object has full information about who is calling (checking the participants() object for a list of participants so you can easily pull out the caller's name and photo. You might also look at JavaScript libraries such as toast.js (https://github.com/srackham/toast.js/) to provide a familier toast popup.

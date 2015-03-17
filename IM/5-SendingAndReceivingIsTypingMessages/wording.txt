@@ -1,0 +1,23 @@
+One of the surprisingly useful features of Skype for Business that I found when I started using it is the "is typing" messages. When the person you're in a conversation with is typing a message, you get notification of that in the client. It's a great way to know that the person is constructing their answer, rather than ignoring you.
+
+If you've been using the Skype for Web API and created something which can send and receive messages, you'll notice the lack of this feature even more. Wouldn't it be nice if there was an easy way to include this into your Skype for Web API projects? Well there is!
+
+The isTyping feature consists of two parts: you sending notification that you're typing, and reacting to receiving messages that the remote party is typing. You don't need to worry about "not typing anymore" messages: when you send a isTyping message it lasts 5 seconds, the server will automatically send a "stopped typing" message unless you continue to send isTyping messages.
+
+Stage 1 - sending isTyping messages. You need some trigger to start sending the messages. In JQuery, a good starting place would be the keyup() on a text input box. Assuming you already have a conversation set up (if not see earlier posts), then sending the isTyping notification is as simple as:
+
+$('#someinputbox').keyup(function (){
+  conversation.chatService.sendIsTyping();
+})
+
+That's it! By binding the call to the keyup function you'll ensure that the message is sent each time a character is pressed, which should be enough to keep the messages realistic.
+
+Stage 2 - receiving isTyping messages. This is a little more complicated, but only because the messages are hidden in a hard-to-find place. The reason for this is that although in our examples we're only going to be looking at a conversation between two people, it's possible to have group conversations and conferences, and the API needs to be able to cope with all scenarios. Therefore, it doesn't make any sense to have a isTyping member on the conversation itself, it needs to be on every participant in the conversation.
+
+In a previous post, we saw how to set up a new conversation. Part of that process involved creating a Conversation Participant, which we then added to the conversation. It's this participant object which contains our isTyping message. Luckily, there's a changed() event here as well, making it fairly easy to react to changes in typing messages. Assuming you've already created a participant:
+
+ convParticipant.chat.isTyping.changed(function (newState) {
+	//do something with newState
+});
+
+newState is a boolean signifiying whether or not the participant is typing. In designing a user interface, a common approach is to show a message (such as 'Bob is typing...') if the value is true, and to simply hide the message if it's false.

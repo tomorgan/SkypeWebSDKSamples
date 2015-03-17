@@ -1,0 +1,20 @@
+Once you've found the person you want to start a conversation with and set up and started the conversation - actually sending messages is a one-liner. However, the reason that it's got it own section is that you can't just send messages into a conversation once you've started it. 
+
+A newly created conversation will start Disconnected. When you call start() it will change to Created briefly before changing to Connecting. Once it's been accepted by the other party it will change to Connected. Once one side closes the conversation its state will change back to Disconnected. You can only send IMs whilst the state is Connected, so you need to monitor this state.
+
+To monitor the state, register a listener on the state property of the chatService, a member of the conversation. Do this before you call start() otherwise you'll miss vital states:
+
+var application = new Skype.Web.Model.Application;
+//do sign-in process
+var conversation = application.conversationsManager.createConversation();
+//set up the conversation, add participants etc.
+conversation.chatService.state.changed(function(newState) {
+//evaluate the new state
+});
+//...
+conversation.chatService.start();
+
+Once the state has changed to Connected, you can then send messages, using this one-liner:
+
+conversation.chatService.sendMessage('message to send');
+

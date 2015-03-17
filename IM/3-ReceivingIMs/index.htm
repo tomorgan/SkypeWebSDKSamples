@@ -1,0 +1,202 @@
+<html>
+<head>
+
+  <!-- JQuery. Skype for Web requires JQuery to work. -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <!-- Bootstrap layouts and themes. Totally optional, but it makes the examples look much nicer :) -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+  <!-- This is the Skype for Web SDK -->
+  <script type="text/javascript" src="../../skypeweb-min.js"></script>
+</head>
+<body>
+
+  <!-- Skype for Web API Code by Tom Morgan | thoughtstuff.co.uk -->
+  <!-- This is one of a number of examples showing how to use the Skype for Web API. The full list is at thoughtstuff.co.uk/skypeforwebapi -->
+  <!-- Disclaimer: use at your own risk. -->
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="username" class="col-sm-2 control-label">Username</label>
+      <div class="col-sm-10">
+        <input type="email" class="form-control" id="username" placeholder="Email">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="password" class="col-sm-2 control-label">Password</label>
+      <div class="col-sm-10">
+        <input type="password" class="form-control" id="password" placeholder="Password">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnLogIn">Log in</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnLogOut">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <span id="loginStatus"></span>
+  </div>
+
+  <hr/>
+
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="contact" class="col-sm-2 control-label">Start Conversation with:</label>
+      <div class="col-sm-10">
+        <input type="email" class="form-control" id="contact" placeholder="Contact SIP Address">
+      </div>
+    </div>  
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnStartConversation" disabled="disabled">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    Conversation State: <span id="lblConversationState"></span>
+    <ul id='conversationText'></ul>
+
+<hr/>
+
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="message" class="col-sm-2 control-label">Send Message:</label>
+      <div class="col-sm-10">
+        <input type="email" class="form-control" id="message" placeholder="Message to send">
+      </div>
+    </div>  
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnSendIM" disabled="disabled">Send IM</button>
+      </div>
+    </div>
+  </div>
+  
+  <script type="text/javascript">
+
+
+  $(function () {
+    'use strict';
+
+    var client = new Skype.Web.Model.Application;
+    var conversation;
+
+    // whenever client.state changes, display its value
+    client.signInManager.state.changed(function (state) {
+      $('#loginStatus').text("Login State: " + state);
+    });
+
+    $('#btnLogIn').click(function () {
+
+        // start signing in
+        client.signInManager.signIn({
+          username: $('#username').val(),
+          password: $('#password').val()
+        }).then(function () {
+            //log in worked!
+            alert('Logged in!');
+            $('#btnStartConversation').prop('disabled', false);
+            
+          }, function (error) {
+            //Something went wrong.
+            alert(error);
+          });
+      });
+
+    $('#btnLogOut').click(function () {
+        // start signing out
+        client.signInManager.signOut()
+        .then(function () {
+               //log out worked!
+               alert('Logged out!');
+               $('#btnStartConversation').prop('disabled', true);
+               $('#btnSendIM').prop('disabled', true);
+             }, function (error) {
+                //Something went wrong.
+                alert(error);
+              });
+      });
+
+    $('#btnStartConversation').click(function () {
+      StartConversation($('#contact').val());
+    });
+
+        $('#btnSendIM').click(function () {
+      conversation.chatService.sendMessage($('#message').val());
+    });
+
+  function StartConversation (contactSIP) {
+  //first, get the person to start a conversation with. Assume one person.
+  var person;
+  GetContactFromName(contactSIP).then(function (results) {
+    results.forEach(function (result) {
+    person = result.result;          
+  });
+
+ //create the conversation object
+ conversation = client.conversationsManager.createConversation();
+
+ //add the person to the conversation by creating a conversation participant object
+ var convParticipant = conversation.createParticipant(person);
+ conversation.participants.add(convParticipant);
+
+ //add the newly created conversation to the ConversationManager list
+ client.conversationsManager.conversations.add(conversation);
+
+//register for the conversation state changing to connected.
+  conversation.chatService.state.changed(function(newState){
+  $('#lblConversationState').text(newState);
+  if (newState == 'Connected') {
+    $('#btnSendIM').prop('disabled', false); //safe to send IMs now
+  }
+  });
+
+//register for new messages added to the historyService object
+  conversation.historyService.activityItems.added(function (newMsg){
+    if (newMsg.type() == 'TextMessage')
+    {
+         var direction;
+         if (newMsg.direction() == 'Incoming') 
+            direction = "<--";          
+         else
+         {
+            direction = "-->";          
+          }
+
+         $("#conversationText").append('<li><b>' + direction + '</b>&nbsp; ' + newMsg.sender.person.displayName() + ' : ' + newMsg.text() + '</li>');  
+    }
+  });
+ 
+ conversation.chatService.start();
+});
+
+}
+
+function GetContactFromName(contactSIP)
+{
+ var query = client.personsAndGroupsManager.createPersonSearchQuery();
+ query.text(contactSIP);
+ query.limit(1);
+ return query.getMore();          
+}
+
+});
+
+</script>
+
+</body>
+</html>

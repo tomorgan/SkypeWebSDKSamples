@@ -1,0 +1,27 @@
+If you've registered a listener on new activityItems being added then you probably won't need anything else, but the historyService object also has a unreadActivityItemCount property and a markAllAsRead() method which you can use to poll for unread messages.
+
+You can also use the historyService to provide rock-solid delivery notification and feedback for a great user experience when sending messages. When you send a message, it goes into the activityItems collection immediately (with the direction of Outgoing). There is a status property you can monitor for the outcome of delivery of that message. Initially the status will change to Pending. Once the message has been delivered it will change to Suceeded, if it can't be sent it will change to Failed. There is also a changed() event you can listen on. 
+
+We can add this event when evaluating new items being added to the historyService object:
+
+  conversation.historyService.activityItems.added(function (newMsg){
+    if (newMsg.type() == 'TextMessage')
+    {
+         var direction;
+         if (newMsg.direction() == 'Incoming') 
+            direction = "<--";          
+         else
+         {
+            direction = "-->";
+            newMsg.status.changed(function (newStatus) {
+             //do something with newStatus
+            });
+          }
+    }
+
+In this code snippet we're first checking that the new entry in the historyService is a TextMessage. After that we evaluate the direction the message is moving in and populate a variable with an arror signifying the direction. In a real project you would use this variable to make a decision about how to display the message, such as a different coloured bubble, or different alignment etc.
+
+For outgoing messages (in the example, messages which are not Incoming we also register for the changed event of the status of the message. We can use this to provide feedback to the user about what's happening with their message.
+
+ 
+
