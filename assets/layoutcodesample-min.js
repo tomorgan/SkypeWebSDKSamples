@@ -1,0 +1,1 @@
+$(function(){$("#header").load("../../assets/header.html",function(){$("#pageTitle").text(pageTitle),document.title="Skype Web Code Sample - "+pageTitle+" - thoughtstuff",$("#githuburl").attr("href",githubLocation),$("#blogposturl").attr("href",blogPostLocation)}),$("#footer").load("../../assets/footer.html")});
