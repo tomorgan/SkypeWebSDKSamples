@@ -1,0 +1,160 @@
+<html>
+<head>
+
+  <!-- JQuery. Skype for Web requires JQuery to work. -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <!-- Bootstrap layouts and themes. Totally optional, but it makes the examples look much nicer :) -->
+  <link rel="stylesheet" type="text/css" href="../../assets/metro/css/metro-bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+  <!-- This is the Skype Web SDK -->
+<script type="text/javascript" src="//swx.cdn.skype.com/shared/v/1.1.23.0/SkypeBootstrap.js"></script>
+</head>
+<body>
+<div id="header"></div>
+
+<!-- Skype Web SDK Code by Tom Morgan | thoughtstuff.co.uk -->
+<!-- This is one of a number of examples showing how to use the Skype Web SDK. The full list is at skypewebsdk.com -->
+<!-- Disclaimer: use at your own risk. -->
+
+<div class="form-horizontal">
+  <div class="form-group">
+    <label for="username" class="col-sm-2 control-label">Username</label>
+    <div class="col-sm-10">
+      <input type="email" class="form-control" id="username" placeholder="Email">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="password" class="col-sm-2 control-label">Password</label>
+    <div class="col-sm-10">
+      <input type="password" class="form-control" id="password" placeholder="Password">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button class="btn btn-default" id="btnLogIn">Log in</button>
+    </div>
+  </div>
+
+    <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button class="btn btn-default" id="btnLogOut">Log out</button>
+    </div>
+  </div>
+</div>
+
+<div>
+  <span id="loginStatus"></span>
+</div>
+
+<hr/>
+
+
+  <div>
+    Display Name: <span id="lblDisplayName"></span><br/>
+    Department: <span id="lblDepartment"></span><br/>
+    Job Title: <span id="lblTitle"></span><br/>
+    Email: <span id="lblEmail"></span><br/>
+    Location: <span id="lblLocation"></span></br>
+    Personal Note: <span id="lblNote"></span><br/>    
+  </div>
+  <div id="footer"></div>
+  
+  <!-- This is not needed for the samples to run, but adds standard headers and footers to the samples, to display title, instructions, about etc.
+       If you're taking this code and using it yourself, you can remove this.-->
+   <script type="text/javascript" src="../../assets/layoutcodesample-min.js"></script>
+  
+  <script type="text/javascript">
+
+  <!-- These variables are only needed for laying out the code sample, they are not part of the sample code. -->
+  var pageTitle = "Getting Your Own Information";
+  var blogPostLocation = "http://thoughtstuff.co.uk";
+  var githubLocation = "http://github.com";
+
+ var client;
+  $(function () {
+    'use strict';
+
+ Skype.initialize({
+            apiKey: 'SWX-BUILD-SDK',
+        }, function (api) {
+            client = new api.application();           
+			
+		// whenever client.state changes, display its value
+		client.signInManager.state.changed(function (state) {
+		$('#loginStatus').text("Login State: " + state);
+		});
+	
+        }, function (err) {
+            alert('Error loading Skype Web SDK: ' + err);
+        });
+
+    $('#btnLogIn').click(function () {
+
+        // start signing in
+        client.signInManager.signIn({
+          username: $('#username').val(),
+          password: $('#password').val()
+        }).then(function () {
+            //log in worked!
+            alert('Logged in!');
+            GetOwnInfo();
+            
+          }, function (error) {
+            //Something went wrong.
+            alert(error);
+          });
+      });
+
+$('#btnLogOut').click(function () {
+        // start signing out
+        client.signInManager.signOut()
+            .then(function () {
+               //log out worked!
+                alert('Logged out!');
+            }, function (error) {
+                //Something went wrong.
+                alert(error);
+            });
+    });
+
+function GetOwnInfo()
+{
+  var me = client.personsAndGroupsManager.mePerson;
+
+  me.displayName.get().then(function (value) {
+     $('#lblDisplayName').text(value);
+  });
+
+  me.department.get().then(function (value) {
+    $('#lblDepartment').text(value);
+  });
+
+  me.title.get().then(function (value) {
+    $('#lblTitle').text(value);  
+  });
+  
+  me.email.get().then(function  (value) {
+    $('#lblEmail').text(value);  
+  });
+
+  me.location.get().then(function (value) {
+    $('#lblLocation').text(value);
+  });
+
+  me.note.text.get().then(function (value) {
+    $('#lblNote').text(value);
+  });
+
+  
+  
+}
+
+});
+
+  </script>
+
+</body>
+</html>
