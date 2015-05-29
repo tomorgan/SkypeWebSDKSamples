@@ -1,0 +1,199 @@
+<html>
+<head>
+
+  <!-- JQuery. Skype for Web requires JQuery to work. -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <!-- Bootstrap layouts and themes. Totally optional, but it makes the examples look much nicer :) -->
+  <link rel="stylesheet" type="text/css" href="../../assets/metro/css/metro-bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  
+  <!-- This demo uses toastr.js to display incoming audio calls -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+  <!-- This is the Skype Web SDK -->
+<script type="text/javascript" src="//swx.cdn.skype.com/shared/v/1.1.23.0/SkypeBootstrap.js"></script>
+</head>
+<body>
+<div id="header"></div>
+
+<!-- Skype Web SDK Code by Tom Morgan | thoughtstuff.co.uk -->
+<!-- This is one of a number of examples showing how to use the Skype Web SDK. The full list is at skypewebsdk.com -->
+<!-- Disclaimer: use at your own risk. -->
+
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="username" class="col-sm-2 control-label">Username</label>
+      <div class="col-sm-10">
+        <input type="email" class="form-control" id="username" placeholder="Email">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="password" class="col-sm-2 control-label">Password</label>
+      <div class="col-sm-10">
+        <input type="password" class="form-control" id="password" placeholder="Password">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnLogIn">Log in</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnLogOut">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  
+  
+  <div>
+    <span id="loginStatus"></span>
+    <br/> Audio Status: <span id="lblAudioStatus"></span>
+  </div>
+
+  <hr/>
+
+ 
+<div id="footer"></div>
+  
+  <!-- This is not needed for the samples to run, but adds standard headers and footers to the samples, to display title, instructions, about etc.
+       If you're taking this code and using it yourself, you can remove this.-->
+   <script type="text/javascript" src="../../assets/layoutcodesample-min.js"></script>
+  
+  <script type="text/javascript">
+
+  <!-- These variables are only needed for laying out the code sample, they are not part of the sample code. -->
+  var pageTitle = 'Receiving a New Audio Conversation';
+  var blogPostLocation = "http://thoughtstuff.co.uk";
+  var githubLocation = "http://github.com";
+ 
+ 
+ var activeConversation;
+ 
+  var client;
+  $(function () {
+    'use strict';
+
+	Skype.initialize({
+            apiKey: 'SWX-BUILD-SDK',
+        }, function (api) {
+            client = new api.application();           
+			
+		// whenever client.state changes, display its value
+		client.signInManager.state.changed(function (state) {
+		$('#loginStatus').text("Login State: " + state);
+		});
+	
+        }, function (err) {
+            alert('Error loading Skype Web SDK: ' + err);
+        }); 
+
+    $('#btnLogIn').click(function () {
+
+        // start signing in
+        client.signInManager.signIn({
+          username: $('#username').val(),
+          password: $('#password').val()
+        }).then(function () {
+            //log in worked!
+            alert('Logged in!');
+                     
+          }, function (error) {
+            //Something went wrong.
+            alert(error);
+          });
+      });
+
+    $('#btnLogOut').click(function () {
+        // start signing out
+        client.signInManager.signOut()
+        .then(function () {
+               //log out worked!
+               alert('Logged out!');
+               $('#btnStartConversation').prop('disabled', true);
+               $('#btnSendIM').prop('disabled', true);
+             }, function (error) {
+                //Something went wrong.
+                alert(error);
+              });
+      });		
+	  
+	     
+	  
+	
+
+client.conversationsManager.conversations.added(function (conversation) {
+if (conversation.audioService.accept.enabled() && conversation.audioService.state() == 'Notified') 
+	{
+		//incoming audio call
+		activeConversation = conversation;
+		
+		//wire up audio state events
+		conversation.selfParticipant.audio.state.changed(function (newState) {
+			$('#lblAudioStatus').text(newState);
+		});
+		
+		var msg = '<div>Incoming Call from ' + conversation.participants()[0].name() + '<br/><button id="btnAccept" class="btn btn-success">Accept</button><button id="btnReject" class="btn btn-danger">Reject</button>';
+		var $toast = toastr["info"](msg, "Accept");
+		
+		 if ($toast.find('#btnAccept').length) {
+                $toast.delegate('#btnAccept', 'click', function () {
+                  AcceptConversation();
+                    $toast.remove();
+                });
+            }
+			
+		 if ($toast.find('#btnReject').length) {
+			$toast.delegate('#btnReject', 'click', function () {
+				RejectConversation();
+				$toast.remove();
+			});
+		}
+		
+	}
+})
+
+
+
+});
+
+function InitialiseToastr()
+{
+toastr.options = {
+  "closeButton": true,
+  "debug": false,
+  "newestOnTop": false,
+  "progressBar": false,
+  "positionClass": "toast-bottom-right",
+  "preventDuplicates": false,
+  "timeOut": "15000",
+  "extendedTimeOut": "15000",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut",
+
+};
+
+
+}
+
+function AcceptConversation()
+{
+activeConversation.audioService.accept();
+}
+
+function RejectConversation()
+{
+activeConversation.audioService.reject();
+}
+
+</script>
+
+</body>
+</html>
