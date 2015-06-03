@@ -1,0 +1,272 @@
+<html>
+<head>
+
+  <!-- JQuery. Skype for Web requires JQuery to work. -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <!-- Bootstrap layouts and themes. Totally optional, but it makes the examples look much nicer :) -->
+ <link rel="stylesheet" type="text/css" href="../../assets/metro/css/metro-bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+  <!-- This is the Skype Web SDK -->
+<script type="text/javascript" src="//swx.cdn.skype.com/shared/v/1.1.23.0/SkypeBootstrap.js"></script>
+</head>
+<body>
+<div id="header"></div>
+
+<!-- Skype Web SDK Code by Tom Morgan | thoughtstuff.co.uk -->
+<!-- This is one of a number of examples showing how to use the Skype Web SDK. The full list is at skypewebsdk.com -->
+<!-- Disclaimer: use at your own risk. -->
+
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="username" class="col-sm-2 control-label">Username</label>
+      <div class="col-sm-10">
+        <input type="email" class="form-control" id="username" placeholder="Email">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="password" class="col-sm-2 control-label">Password</label>
+      <div class="col-sm-10">
+        <input type="password" class="form-control" id="password" placeholder="Password">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnLogIn">Log in</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnLogOut">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <span id="loginStatus"></span><br/>
+	<h3>
+	Selected Camera: <span id="selectedCamera"></span><br/>
+	Selected Microphone: <span id="selectedMicrophone"></span><br/>
+	Selected Speaker: <span id="selectedSpeaker"></span><br/>
+	</h3>
+  </div>
+
+  <hr/>
+
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="cameras" class="col-sm-2 control-label">Change Camera</label>
+      <div class="col-sm-10">
+       <select class="form-control" id="cameras"></select>
+      </div>
+    </div>  
+	
+	  <div class="form-group">
+      <label for="mics" class="col-sm-2 control-label">Change Microphone</label>
+      <div class="col-sm-10">
+       <select class="form-control" id="mics"></select>
+      </div>
+    </div>  
+	
+	  <div class="form-group">
+      <label for="speakers" class="col-sm-2 control-label">Change Speaker</label>
+      <div class="col-sm-10">
+       <select class="form-control" id="speakers"></select>
+      </div>
+    </div>  
+
+   
+  </div>
+  
+
+<div id="footer"></div>
+  
+  <!-- This is not needed for the samples to run, but adds standard headers and footers to the samples, to display title, instructions, about etc.
+       If you're taking this code and using it yourself, you can remove this.-->
+   <script type="text/javascript" src="../../assets/layoutcodesample-min.js"></script>
+  
+  <script type="text/javascript">
+
+  <!-- These variables are only needed for laying out the code sample, they are not part of the sample code. -->
+  var pageTitle = 'Choosing Different Devices';
+  var blogPostLocation = "http://thoughtstuff.co.uk";
+  var githubLocation = "http://github.com";
+ 
+
+
+   var client;
+  $(function () {
+    'use strict';
+
+	Skype.initialize({
+            apiKey: 'SWX-BUILD-SDK',
+        }, function (api) {
+            client = new api.application();           
+			
+		// whenever client.state changes, display its value
+		client.signInManager.state.changed(function (state) {
+		$('#loginStatus').text("Login State: " + state);
+		});
+	
+        }, function (err) {
+            alert('Error loading Skype Web SDK: ' + err);
+        }); 
+
+
+    $('#btnLogIn').click(function () {
+
+        // start signing in
+        client.signInManager.signIn({
+          username: $('#username').val(),
+          password: $('#password').val()
+        }).then(function () {
+            //log in worked!
+            alert('Logged in!');
+           SubscribeToDevices();
+            
+          }, function (error) {
+            //Something went wrong.
+            alert(error);
+          });
+      });
+
+    $('#btnLogOut').click(function () {
+        // start signing out
+        client.signInManager.signOut()
+        .then(function () {
+               //log out worked!
+               alert('Logged out!');
+               $('#btnStartConversation').prop('disabled', true);
+             }, function (error) {
+                //Something went wrong.
+                alert(error);
+              });
+      });
+
+	  //listen for changes to the device drop downs
+ 	   $('#cameras').change(function() {
+	
+	   var chosenCameraId = $('#cameras').val();
+			client.devicesManager.cameras.get().then(function (list) {
+			for(var i=0; i < list.length; i++)
+		{
+		var camera = list[i];
+		if (camera.id() == chosenCameraId)
+		{
+		  client.devicesManager.selectedCamera.set(camera);
+		}		
+		}
+		
+		});
+	   });
+   
+    	$('#mics').change(function() {
+	
+	   var chosenMicId = $('#mics').val();
+			client.devicesManager.microphones.get().then(function (list) {
+			for(var i=0; i < list.length; i++)
+		{
+		var microphone = list[i];
+		if (microphone.id() == chosenMicId)
+		{
+		  client.devicesManager.selectedMicrophone.set(microphone);
+		}		
+		}
+		
+		});
+	   });
+	   
+	    $('#speakers').change(function() {
+	
+	   var chosenSpeakerId = $('#speakers').val();
+			client.devicesManager.speakers.get().then(function (list) {
+			for(var i=0; i < list.length; i++)
+		{
+		var speaker = list[i];
+		if (speaker.id() == chosenSpeakerId)
+		{
+		  client.devicesManager.selectedSpeaker.set(speaker);
+		}		
+		}
+		
+		});
+	   });
+
+
+
+  function SubscribeToDevices () {
+ListAvailableDevices();
+ShowCurrentDevices(); 
+ SubscribeToEvents();
+ 
+
+}
+
+
+
+function SubscribeToEvents()
+{
+  client.devicesManager.cameras.subscribe();
+  client.devicesManager.microphones.subscribe();
+  client.devicesManager.speakers.subscribe();
+}
+
+function ShowCurrentDevices()
+{
+ client.devicesManager.selectedCamera.changed(function (theCamera) {
+	$('#selectedCamera').text(theCamera.id());
+  });
+
+  
+  client.devicesManager.selectedMicrophone.changed(function (theMicrophone) {
+	$('#selectedMicrophone').text(theMicrophone.id());
+  });
+  
+  
+  client.devicesManager.selectedSpeaker.changed(function (theSpeaker) {
+	$('#selectedSpeaker').text(theSpeaker.id());
+  });
+  
+}
+
+function ListAvailableDevices()
+{
+//cameras
+client.devicesManager.cameras.added(function (newCamera) {
+     $('#cameras')
+         .append($("<option></option>")
+         .attr("value",newCamera.id())
+         .text(newCamera.id())); 
+
+});
+
+//microphones
+client.devicesManager.microphones.added(function (newMicrophone) {
+     $('#mics')
+         .append($("<option></option>")
+         .attr("value",newMicrophone.id())
+         .text(newMicrophone.id())); 
+		 });
+		 
+//speakers
+client.devicesManager.speakers.added(function (newSpeaker) {
+     $('#speakers')
+         .append($("<option></option>")
+         .attr("value",newSpeaker.id())
+         .text(newSpeaker.id())); 
+
+});
+
+}
+
+
+
+});
+
+</script>
+
+</body>
+</html>
