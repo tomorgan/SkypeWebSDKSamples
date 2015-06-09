@@ -1,0 +1,186 @@
+<html>
+<head>
+
+  <!-- JQuery. Skype for Web requires JQuery to work. -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <!-- Bootstrap layouts and themes. Totally optional, but it makes the examples look much nicer :) -->
+  <link rel="stylesheet" type="text/css" href="../../assets/metro/css/metro-bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+  <!-- This is the Skype Web SDK -->
+<script type="text/javascript" src="//swx.cdn.skype.com/shared/v/1.1.23.0/SkypeBootstrap.js"></script>
+</head>
+<body>
+<div id="header"></div>
+
+<!-- Skype Web SDK Code by Tom Morgan | thoughtstuff.co.uk -->
+<!-- This is one of a number of examples showing how to use the Skype Web SDK. The full list is at skypewebsdk.com -->
+<!-- Disclaimer: use at your own risk. -->
+
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="name" class="col-sm-2 control-label">Display Name</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="name" placeholder="Andy Other">
+      </div>
+    </div>
+  
+   <div class="form-group">
+      <label for="confURI" class="col-sm-2 control-label">Join Conference URI:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="confURI" placeholder="sip:tom@thoughtstuff.co.uk;gruu;opaque=app:conf:focus:id:Q740UACR">
+      </div>
+    </div>  
+	
+	 <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnStartConversation" disabledvvv="disabled">Join</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnLogOut">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <span id="loginStatus"></span>
+  </div>
+
+  <hr/>
+Conversation State: <span id="lblConversationState"></span>
+    <ul id='conversationText'></ul>
+
+<hr/>
+
+  <div class="form-horizontal">
+    <div class="form-group">
+      <label for="message" class="col-sm-2 control-label">Send Message:</label>
+      <div class="col-sm-10">
+        <input type="email" class="form-control" id="message" placeholder="Message to send">
+      </div>
+    </div>  
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button class="btn btn-default" id="btnSendIM" disabled="disabled">Send IM</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="footer"></div>
+  
+  <!-- This is not needed for the samples to run, but adds standard headers and footers to the samples, to display title, instructions, about etc.
+       If you're taking this code and using it yourself, you can remove this.-->
+   <script type="text/javascript" src="../../assets/layoutcodesample-min.js"></script>
+  
+  <script type="text/javascript">
+
+  <!-- These variables are only needed for laying out the code sample, they are not part of the sample code. -->
+  var pageTitle = 'Joining a Conference by URI';
+  var blogPostLocation = "http://thoughtstuff.co.uk";
+  var githubLocation = "http://github.com";
+
+
+
+ var client;
+  $(function () {
+    'use strict';
+
+	Skype.initialize({
+            apiKey: 'SWX-BUILD-SDK',
+        }, function (api) {
+            client = new api.application();           
+			
+		// whenever client.state changes, display its value
+		client.signInManager.state.changed(function (state) {
+		$('#loginStatus').text("Login State: " + state);
+		});
+	
+        }, function (err) {
+            alert('Error loading Skype Web SDK: ' + err);
+        }); 
+
+    $('#btnStartConversation').click(function () {
+
+        // Join Conference URI anonymously with just the display name and conference URI
+        client.signInManager.signIn({
+          name: $('#name').val(),
+          meeting: $('#confURI').val()
+        }).then(function () {
+            //log in worked!
+            alert('Logged in!');
+                  StartConversation();
+          }, function (error) {
+            //Something went wrong.
+            alert(error);
+          });
+      });
+
+    $('#btnLogOut').click(function () {
+        // start signing out
+        client.signInManager.signOut()
+        .then(function () {
+               //log out worked!
+              alert('Logged out!');
+             
+               $('#btnSendIM').prop('disabled', true);
+             }, function (error) {
+                //Something went wrong.
+                alert(error);
+              });
+      });
+
+ 
+
+        $('#btnSendIM').click(function () {
+      conversation.chatService.sendMessage($('#message').val());
+    });
+
+  function StartConversation () {
+ var conferenceURI = $('#confURI').val();
+ conversation = client.conversationsManager.getConversationByUri(conferenceURI);
+ 
+ //register for the conversation state changing to connected.
+  conversation.chatService.state.changed(function(newState){
+  $('#lblConversationState').text(newState);
+  if (newState == 'Connected') {
+    $('#btnSendIM').prop('disabled', false); //safe to send IMs now
+  }
+  });
+
+//register for new messages added to the historyService object
+  conversation.historyService.activityItems.added(function (newMsg){
+    if (newMsg.type() == 'TextMessage')
+    {
+         var direction;
+         if (newMsg.direction() == 'Incoming') 
+            direction = "<--";          
+         else
+         {
+            direction = "-->";          
+          }
+
+         $("#conversationText").append('<li><b>' + direction + '</b>&nbsp; ' + newMsg.sender.person.displayName() + ' : ' + newMsg.text() + '</li>');  
+    }
+  });
+ 
+ 
+ 
+ conversation.chatService.start();
+ 
+
+
+}
+
+
+
+});
+
+</script>
+
+</body>
+</html>
