@@ -1,0 +1,120 @@
+
+
+.chat
+{
+border-style:solid;
+border-width:3px;
+border-radius:10px;
+padding: 5px;
+}
+
+.chat-disabled
+{
+background-color: silver;
+border-color: gray;
+}
+
+.chat-enabled
+{
+
+border-color: #0052FF;
+}
+
+.chat-controls
+{
+display:block;
+width: 100%;
+margin-top: 5px;
+}
+
+#chat-input
+{
+width:60%;
+float: left;
+}
+
+
+.chat-buttons
+{
+	float:right;
+}
+
+.conversation
+{
+width:100%;
+}
+
+.conversation-sent,.conversation-recd
+{
+margin-top: 3px;
+padding: 3px 5px 3px 5px;
+max-width: 80%;
+clear: both;
+}
+
+.conversation-sent
+{
+text-align: left;
+margin-right: auto;
+}
+
+.conversation-recd
+{
+margin-left: auto;
+text-align: right;
+}
+
+.conversation-sent-text
+{
+display: inline-block;
+background-color: #0052FF;
+width: 30%;
+font-weight: bold;
+color: white;
+padding: 3px;
+
+border-radius: 5px 5px 5px 0px;	
+-webkit-border-radius: 5px 5px 5px 0px;
+-moz-border-radius: 5px 5px 5px 0px;
+-o-border-radius: 5px 5px 5px 0px;
+-ms-border-radius: 5px 5px 5px 0px;
+}
+
+.conversation-recd-text
+{
+display: inline-block;
+background-color: #FF7100;
+width: 30%;
+font-weight: bold;
+color: white;
+padding: 3px;
+
+border-radius: 5px 5px 0px 5px;	
+-webkit-border-radius: 5px 5px 0px 5px;	
+-moz-border-radius: 5px 5px 0px 5px;	
+-o-border-radius: 5px 5px 0px 5px;	
+-ms-border-radius: 5px 5px 0px 5px;	
+}
+
+.videoWindows
+{
+	
+}
+
+#videoWindowOutgoing
+{
+	/*
+	height: 10%;
+	width: 10%;
+	float:right;
+	*/
+}
+
+#videoWindowIncoming
+{
+	
+}
+
+.frame {
+  display: none;
+}
